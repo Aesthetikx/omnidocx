@@ -42,26 +42,28 @@ $ Omnidocx::Docx.merge_documents(['tmp/doc1.docx', 'tmp/doc2.docx'], 'tmp/output
 require 'omnidocx'
 
 # To write images to a document, you can use the following
-# images_to_write is an array of hashes, where each hash stores information about one image
-$ Omnidocx::Docx.write_images_to_doc(images_to_write=[], input_document_path, output_document_path)
+# images_to_write is a hashe of text replacements, where image hash stores information about one image
+$ Omnidocx::Docx.write_images_to_doc(images_to_write={}, input_document_path, output_document_path)
 
-# Below is an example of the images_to_write array that you can pass in for images to be written to the doc
+# Below is an example of the images_to_write hash that you can pass in for images to be written to the doc
 # image path, height and width are mandatory
 
-    $ images_to_write = [ {
-                          :path => "tmp/image1.jpg",     #URL || local path
-                          :height => 500,
-                          :width => 500,
-                          :hdpi => 115,       #optional
-                          :vdpi => 115        #optional
-                          },
-                          :path => "https://xyz.com/abc.jpeg",    #URL || local path
-                          :height => 800,
-                          :width => 500,
-                          :hdpi => 115,       #optional
-                          :vdpi => 115        #optional
-                          }
-                        ]
+    $ images_to_write = {
+      '{{image_one}}' => {
+        :path => "tmp/image1.jpg",     #URL || local path
+        :height => 500,
+        :width => 500,
+        :hdpi => 115,       #optional
+        :vdpi => 115        #optional
+      },
+      '{{image_two}}' => {
+        :path => "https://xyz.com/abc.jpeg",    #URL || local path
+        :height => 800,
+        :width => 500,
+        :hdpi => 115,       #optional
+        :vdpi => 115        #optional
+      }
+    }
 
 ```
 

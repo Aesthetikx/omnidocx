@@ -115,8 +115,8 @@ module Omnidocx
             vdpi = img[:vdpi] || VERTICAL_DPI
 
             #calculating the width and height of the image in EMUs, the format accepted by docx files
-            widthEmus = (img[:width].to_i / hdpi.to_i * EMUSPERINCH)
-            heightEmus = (img[:height].to_i / vdpi.to_i * EMUSPERINCH)
+            widthEmus = (img[:width].to_i / hdpi.to_f * EMUSPERINCH).to_i
+            heightEmus = (img[:height].to_i / vdpi.to_f * EMUSPERINCH).to_i
 
             #creating a new drawing element with info like rid, height, width,etc.
             @image_element_xml = Nokogiri::XML IMAGE_ELEMENT

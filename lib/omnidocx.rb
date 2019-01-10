@@ -93,61 +93,66 @@ module Omnidocx
 
           #if image path is readable
           if !data.empty?
-            img_url_no_params = img[:path].gsub(/\?.*/,'')
-            extension = File.extname(img_url_no_params).split(".").last
+            10.times do
+              # Text not found
+              next if @body.xpath("//w:p[contains(., '#{text}')]").none?
 
-            if !media_content_type_hash.keys.include?(extension.split(".").last)
-              #making an entry for a new media type
-              media_content_type_hash["#{extension}"] = MIME::Types.type_for(img_url_no_params)[0].to_s
-            end
-    
-            zos.put_next_entry("word/media/image#{cnt}.#{extension}")
-            zos.print data     #storing the image in the new zip
-            
-            new_rel_node = Nokogiri::XML::Node.new("Relationship", @rel_doc)
-            new_rel_node["Id"] = "rid#{cnt}"
-            new_rel_node["Type"] = MEDIA_TYPE
-            new_rel_node["Target"] = "media/image#{cnt}.#{extension}"
-            @rel_doc.at('Relationships').add_child(new_rel_node)      #adding a new relationship node to the relationships xml
-            
-            hdpi = img[:hdpi] || HORIZONTAL_DPI
-            vdpi = img[:vdpi] || VERTICAL_DPI
+              img_url_no_params = img[:path].gsub(/\?.*/,'')
+              extension = File.extname(img_url_no_params).split(".").last
 
-            #calculating the width and height of the image in EMUs, the format accepted by docx files
-            widthEmus = (img[:width].to_i / hdpi.to_f * EMUSPERINCH).to_i
-            heightEmus = (img[:height].to_i / vdpi.to_f * EMUSPERINCH).to_i
-
-            #creating a new drawing element with info like rid, height, width,etc.
-            @image_element_xml = Nokogiri::XML IMAGE_ELEMENT
-            @image_element_xml.xpath("//w:drawing", NAMESPACES).each do |dr_node|
-              docPr = dr_node.xpath(".//wp:docPr", NAMESPACES).last
-              docPr["name"] = "image#{cnt}.#{extension}"
-              docPr["id"] = "#{cnt}"
-
-              extent = dr_node.xpath(".//wp:extent", NAMESPACES).last
-              extent["cx"] = widthEmus.to_s
-              extent["cy"] = heightEmus.to_s
-
-              ext = dr_node.xpath(".//a:ext", NAMESPACES).last
-              ext["cx"] = widthEmus.to_s
-              ext["cy"] = heightEmus.to_s
-
-              pic_cNvPr = dr_node.xpath(".//pic:cNvPr", NAMESPACES).last
-              pic_cNvPr["name"] = "image#{cnt}.#{extension}"
-              pic_cNvPr["id"] = "#{cnt}"
+              if !media_content_type_hash.keys.include?(extension.split(".").last)
+                #making an entry for a new media type
+                media_content_type_hash["#{extension}"] = MIME::Types.type_for(img_url_no_params)[0].to_s
+              end
+      
+              zos.put_next_entry("word/media/image#{cnt}.#{extension}")
+              zos.print data     #storing the image in the new zip
               
-              blip = dr_node.xpath(".//a:blip", NAMESPACES).last
-              blip.attributes["embed"].value = "rid#{cnt}"
+              new_rel_node = Nokogiri::XML::Node.new("Relationship", @rel_doc)
+              new_rel_node["Id"] = "rid#{cnt}"
+              new_rel_node["Type"] = MEDIA_TYPE
+              new_rel_node["Target"] = "media/image#{cnt}.#{extension}"
+              @rel_doc.at('Relationships').add_child(new_rel_node)      #adding a new relationship node to the relationships xml
+              
+              hdpi = img[:hdpi] || HORIZONTAL_DPI
+              vdpi = img[:vdpi] || VERTICAL_DPI
+
+              #calculating the width and height of the image in EMUs, the format accepted by docx files
+              widthEmus = (img[:width].to_i / hdpi.to_f * EMUSPERINCH).to_i
+              heightEmus = (img[:height].to_i / vdpi.to_f * EMUSPERINCH).to_i
+
+              #creating a new drawing element with info like rid, height, width,etc.
+              @image_element_xml = Nokogiri::XML IMAGE_ELEMENT
+              @image_element_xml.xpath("//w:drawing", NAMESPACES).each do |dr_node|
+                docPr = dr_node.xpath(".//wp:docPr", NAMESPACES).last
+                docPr["name"] = "image#{cnt}.#{extension}"
+                docPr["id"] = "#{cnt}"
+
+                extent = dr_node.xpath(".//wp:extent", NAMESPACES).last
+                extent["cx"] = widthEmus.to_s
+                extent["cy"] = heightEmus.to_s
+
+                ext = dr_node.xpath(".//a:ext", NAMESPACES).last
+                ext["cx"] = widthEmus.to_s
+                ext["cy"] = heightEmus.to_s
+
+                pic_cNvPr = dr_node.xpath(".//pic:cNvPr", NAMESPACES).last
+                pic_cNvPr["name"] = "image#{cnt}.#{extension}"
+                pic_cNvPr["id"] = "#{cnt}"
+                
+                blip = dr_node.xpath(".//a:blip", NAMESPACES).last
+                blip.attributes["embed"].value = "rid#{cnt}"
+              end
+
+              # replace the text element with the image
+              @body.xpath("//w:p[contains(., '#{text}')]").first.replace(
+                @image_element_xml.xpath("//w:p").last.to_xml
+              )
+
+              media_hash[cnt] = index
             end
-
-            # replace the text element with the image
-            @body.xpath("//w:p[contains(., '#{text}')]").first.replace(
-              @image_element_xml.xpath("//w:p").last.to_xml
-            )
-
-            media_hash[cnt] = index
+            cnt+=1
           end
-          cnt+=1
         end  
 
         #updating the content type info

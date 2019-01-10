@@ -321,6 +321,8 @@ module Omnidocx
           doc_content.xpath("//w:tbl").each do |tbl_node|
             tblStyle = tbl_node.xpath('.//w:tblStyle').last
 
+            next unless tblStyle
+
             table_hash["doc#{doc_cnt}"]["#{tblStyle.attributes['val'].value}"] = tbl_cnt
             tblStyle.attributes['val'].value = tblStyle.attributes['val'].value.gsub(/[0-9]+/,"#{tbl_cnt}")
             tbl_cnt+=1

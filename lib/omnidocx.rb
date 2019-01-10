@@ -405,7 +405,7 @@ module Omnidocx
             body_nodes = doc_content.xpath('//w:body').children[0..doc_content.xpath('//w:body').children.count-2]
             
             #adding a page break between documents being merged
-            if doc_cnt > 1 && page_break
+            if doc_cnt > 0 && page_break
               @main_body.children.last.add_previous_sibling('<w:p><w:r><w:br w:type="page"/></w:r></w:p>')
             end
             #appending the body_nodes to main document's body

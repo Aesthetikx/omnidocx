@@ -93,7 +93,7 @@ module Omnidocx
 
           #if image path is readable
           if !data.empty?
-            10.times do
+            128.times do
               # Text not found
               next if @body.xpath("//w:p[contains(., '#{text}')]").none?
 

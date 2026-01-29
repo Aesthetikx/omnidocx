@@ -93,26 +93,28 @@ module Omnidocx
 
           #if image path is readable
           if !data.empty?
-            128.times do
+            128.times do |i|
               # Text not found
               next if @body.xpath("//w:p[contains(., '#{text}')]").none?
 
               img_url_no_params = img[:path].gsub(/\?.*/,'')
               extension = File.extname(img_url_no_params).split(".").last
 
-              if !media_content_type_hash.keys.include?(extension.split(".").last)
-                #making an entry for a new media type
-                media_content_type_hash["#{extension}"] = MIME::Types.type_for(img_url_no_params)[0].to_s
+              if i.zero?
+                if !media_content_type_hash.keys.include?(extension.split(".").last)
+                  #making an entry for a new media type
+                  media_content_type_hash["#{extension}"] = MIME::Types.type_for(img_url_no_params)[0].to_s
+                end
+
+                zos.put_next_entry("word/media/image#{cnt}.#{extension}")
+                zos.print data     #storing the image in the new zip
+
+                new_rel_node = Nokogiri::XML::Node.new("Relationship", @rel_doc)
+                new_rel_node["Id"] = "rid#{cnt}"
+                new_rel_node["Type"] = MEDIA_TYPE
+                new_rel_node["Target"] = "media/image#{cnt}.#{extension}"
+                @rel_doc.at('Relationships').add_child(new_rel_node)      #adding a new relationship node to the relationships xml
               end
-      
-              zos.put_next_entry("word/media/image#{cnt}.#{extension}")
-              zos.print data     #storing the image in the new zip
-              
-              new_rel_node = Nokogiri::XML::Node.new("Relationship", @rel_doc)
-              new_rel_node["Id"] = "rid#{cnt}"
-              new_rel_node["Type"] = MEDIA_TYPE
-              new_rel_node["Target"] = "media/image#{cnt}.#{extension}"
-              @rel_doc.at('Relationships').add_child(new_rel_node)      #adding a new relationship node to the relationships xml
               
               hdpi = img[:hdpi] || HORIZONTAL_DPI
               vdpi = img[:vdpi] || VERTICAL_DPI
